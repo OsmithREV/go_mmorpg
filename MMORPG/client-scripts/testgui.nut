@@ -898,6 +898,191 @@ class GUITextButton
 	g_ButtonActive = false;
 }
 
+class GUIInput
+{
+	constructor(x,y,font,max,r,g,b)
+	{
+		g_PosX = x;
+		g_CurX = x;
+		g_PosY = y;
+		g_CurY = y;
+		g_Max = max;
+		
+		g_InputDraw = createDraw("",font,g_CurX,g_CurY,r,g,b,true);
+	}
+	
+	function access(toggle)
+	{
+		g_Access = toggle;
+	}
+	
+	function reset()
+	{
+		g_CurX = g_PosX;
+		g_CurY = g_PosY;
+	}
+	
+	function open()
+	{
+		clearChatInput();
+		chatInputPosition(g_PosX,g_PosY);
+		setDrawVisible(g_InputDraw,false);
+		chatInputToggle(true);
+		chatInputSetText(g_Input);
+		g_Opened = true;
+	}
+	
+	function close()
+	{
+		clearChatInput();
+		chatInputPosition(0,0); //Тут координаты для позиции чата
+		chatInputToggle(false);
+		g_Opened = false;
+		setDrawText(g_InputDraw,g_Input);
+		setDrawVisible(g_InputDraw,true);
+	}
+	
+	function show()
+	{
+		g_Showed = true;
+		setDrawVisible(g_InputDraw,true);
+	}
+	
+	function hide()
+	{
+		g_Showed = false;
+		setDrawVisible(g_InputDraw,false);
+	}
+	
+	function isShowed()
+	{
+		return g_Showed;
+	}
+	
+	function isOpen()
+	{
+		return g_Opened;
+	}
+	
+	function getInput()
+	{
+		return g_Input;
+	}
+	
+	function setPosition(x,y)
+	{
+		g_PosX = x;
+		g_PosY = y;
+		g_CurX = x;
+		g_CurY = y;
+		setDrawPosition(g_InputDraw,x,y);
+	}
+	
+	function setColor(r,g,b)
+	{
+		setDrawColor(g_InputDraw,r,g,b);
+	}
+	
+	function setInput(text)
+	{
+		g_Input = text;
+		if (isChatInputOpen())
+		{
+			chatInputSetText(text);
+		};
+	}
+	
+	function clearInput()
+	{
+		clearChatInput();
+		g_Input = -1;
+	}
+	
+	function connect(window)
+	{
+		for (local i = 0; i < MAX_GUIELEMENTS; ++i)
+		{
+			if (guiStructure[i].gui == window)
+			{
+				if (guiStructure[i].type == 2)
+				{
+					g_ConnectedWindow = guiStructure[i].gui;
+				}
+				else
+				{
+					print("That gui element is not window!");
+				};
+			};
+		};
+	}
+	
+	function disconnect()
+	{
+		if (g_ConnectedWindow != -1)
+		{
+			g_ConnectedWindow = -1;
+		};
+	}
+	
+	function check()
+	{
+		if (g_ConnectedWindow != -1)
+		{
+			if (g_ConnectedWindow.isMove() == true)
+			{
+				if (g_OldX == 2281337228)
+				{
+					g_OldX = pos.x;
+					g_OldY = pos.y;
+				};
+				if (g_OldX > pos.x)
+				{
+					g_CurX = g_CurX - (g_OldX - pos.x);
+				}
+				else
+				{
+					g_CurX = g_CurX + (pos.x - g_OldX);
+				};
+				if (g_OldY > pos.y)
+				{
+					g_CurY = g_CurY - (g_OldY - pos.y);
+				}
+				else
+				{
+					g_CurY = g_CurY + (pos.y - g_OldY);
+				};
+				g_OldX = pos.x;
+				g_OldY = pos.y;
+				setDrawPosition(g_InputDraw,g_CurX,g_CurY);
+			}
+			else
+			{
+				g_OldX = 2281337228;
+				g_OldY = 2281337228;
+			};
+			if (g_ConnectedWindow.isReset() == true)
+			{
+				g_CurX = g_PosX;
+				g_CurY = g_PosY;
+				setDrawPosition(g_InputDraw,g_PosX,g_PosY);
+			};
+		};
+	}
+	
+	g_PosX = -1;
+	g_PosY = -1;
+	g_CurX = -1;
+	g_CurY = -1;
+	g_OldX = -1;
+	g_OldY = -1;
+	g_Input = -1;
+	g_ConnectedWindow = -1;
+	g_InputDraw = -1;
+	g_Opened = false;
+	g_Access = true;
+	g_Showed = false;
+}
+
 function createGUIButton(x,y,width,height,texture)
 {
 	local id = getGUIid();
@@ -934,6 +1119,15 @@ function createGUITextButton(text,font,x,y,r,g,b)
 	return guiStructure[id].gui;
 }
 
+function createGUIInput(x,y,font,r,g,b,max)
+{
+	local id = getGUIid();
+	guiStructure[id].gui = GUIInput(x,y,font,r,g,b,max);
+	guiStructure[id].type = 5;
+	callServerFunc("print","InputField with ID " + id + " created.");
+	return guiStructure[id].gui;
+}
+
 function getGUIid()
 {
 	for (local i = 0; i < MAX_GUIELEMENTS; ++i)
@@ -950,6 +1144,22 @@ function enableWindowsMovement(toggle)
 {
 	WINDOW_MOVEMENT = toggle;
 };
+
+addEvent("onKey",function(key,letter)
+{
+	for (local i = 0; i < MAX_GUIELEMENTS; ++i)
+	{
+		if (guiStructure[i].type == 5)
+		{
+			local text = guiStructure[i].gui.getInput();
+			if (text.len() > guiStructure[i].gui.g_Max)
+			{
+				text = text.slice(0,guiStructure[i].gui.g_Max);
+				guiStructure[i].gui.setInput(text);
+			};
+		};
+	};
+});
 
 addEvent("onRender",function()
 {
