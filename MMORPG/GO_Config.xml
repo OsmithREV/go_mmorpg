@@ -1,0 +1,13 @@
+<!-- Gothic 2 Online automatic generated config file -->
+<GO_Config>
+	<config public=0 serverName="Gothic 2 Online Server" serverPort=5000 maxSlots=32 adminPassword="your_password" />
+
+	<script src="main.nut" type="server" />
+	<script src="mmo.nut" type="client" />
+
+	<!-- default start scripts -->
+	<script src="playerlist.nut" type="client" />
+	<script src="chat.nut" type="client" />
+	<script src="testgui.nut" type="client" />
+	<script src="statistics.nut" type="client" />
+</GO_Config>
