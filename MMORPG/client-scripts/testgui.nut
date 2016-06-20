@@ -900,13 +900,15 @@ class GUITextButton
 
 class GUIInput
 {
-	constructor(x,y,max,r,g,b)
+	constructor(x,y,r,g,b,max,max_line)
 	{
 		g_PosX = x;
 		g_CurX = x;
 		g_PosY = y;
 		g_CurY = y;
 		g_Max = max;
+		g_Input = "";
+		g_MaxLine = max_line;
 		
 		g_InputDraw = createDraw("","Font_Old_10_White_Hi.TGA",g_CurX,g_CurY,r,g,b,true);
 	}
@@ -920,7 +922,7 @@ class GUIInput
 	{
 		g_CurX = g_PosX;
 		g_CurY = g_PosY;
-		setDrawPosition(
+		setDrawPosition(g_InputDraw,g_PosX,g_PosY);
 	}
 	
 	function open()
@@ -987,10 +989,6 @@ class GUIInput
 	function setInput(text)
 	{
 		g_Input = text;
-		if (isChatInputOpen())
-		{
-			chatInputSetText(text);
-		};
 	}
 	
 	function clearInput()
@@ -1068,6 +1066,22 @@ class GUIInput
 				setDrawPosition(g_InputDraw,g_PosX,g_PosY);
 			};
 		};
+		if (isChatInputOpen())
+		{
+			if (g_Opened == true)
+			{
+				if (g_Input.len() > g_MaxLine)
+				{
+					clearChatInput();
+					chatInputSetText(g_Input.slice(g_Input.len() - g_MaxLine,g_Input.len()));
+				}
+				else
+				{
+					clearChatInput();
+					chatInputSetText(g_Input);
+				};
+			};
+		};
 	}
 	
 	g_PosX = -1;
@@ -1077,6 +1091,8 @@ class GUIInput
 	g_OldX = -1;
 	g_OldY = -1;
 	g_Input = -1;
+	g_Max = -1;
+	g_MaxLine = -1;
 	g_ConnectedWindow = -1;
 	g_InputDraw = -1;
 	g_Opened = false;
@@ -1120,10 +1136,10 @@ function createGUITextButton(text,font,x,y,r,g,b)
 	return guiStructure[id].gui;
 }
 
-function createGUIInput(x,y,font,r,g,b,max)
+function createGUIInput(x,y,r,g,b,max,max_line)
 {
 	local id = getGUIid();
-	guiStructure[id].gui = GUIInput(x,y,font,r,g,b,max);
+	guiStructure[id].gui = GUIInput(x,y,r,g,b,max,max_line);
 	guiStructure[id].type = 5;
 	callServerFunc("print","InputField with ID " + id + " created.");
 	return guiStructure[id].gui;
@@ -1148,15 +1164,44 @@ function enableWindowsMovement(toggle)
 
 addEvent("onKey",function(key,letter)
 {
-	for (local i = 0; i < MAX_GUIELEMENTS; ++i)
+	clearChatInput();
+	if (key == KEY_BACK)
 	{
-		if (guiStructure[i].type == 5)
+		for (local i = 0; i < MAX_GUIELEMENTS; ++i)
 		{
-			local text = guiStructure[i].gui.getInput();
-			if (text.len() > guiStructure[i].gui.g_Max)
+			if (guiStructure[i].type == 5)
 			{
-				text = text.slice(0,guiStructure[i].gui.g_Max);
-				guiStructure[i].gui.setInput(text);
+				if (guiStructure[i].gui.isOpen())
+				{
+					local text = guiStructure[i].gui.getInput();
+					if (text.len() > 0)
+					{
+						text = text.slice(0,text.len() - 1);
+						guiStructure[i].gui.setInput(text);
+					};
+				};
+			};
+		};
+	}
+	else
+	{
+		for (local i = 0; i < MAX_GUIELEMENTS; ++i)
+		{
+			if (guiStructure[i].type == 5)
+			{
+				if (guiStructure[i].gui.isOpen())
+				{
+					local text = guiStructure[i].gui.g_Input + "" + letter;
+					if (text.len() > guiStructure[i].gui.g_Max)
+					{
+						text = text.slice(0,guiStructure[i].gui.g_Max);
+						guiStructure[i].gui.setInput(text);
+					}
+					else
+					{
+						guiStructure[i].gui.setInput(text);
+					};
+				};
 			};
 		};
 	};
