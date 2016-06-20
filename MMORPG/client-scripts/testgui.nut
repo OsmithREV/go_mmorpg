@@ -900,7 +900,7 @@ class GUITextButton
 
 class GUIInput
 {
-	constructor(x,y,font,max,r,g,b)
+	constructor(x,y,max,r,g,b)
 	{
 		g_PosX = x;
 		g_CurX = x;
@@ -908,7 +908,7 @@ class GUIInput
 		g_CurY = y;
 		g_Max = max;
 		
-		g_InputDraw = createDraw("",font,g_CurX,g_CurY,r,g,b,true);
+		g_InputDraw = createDraw("","Font_Old_10_White_Hi.TGA",g_CurX,g_CurY,r,g,b,true);
 	}
 	
 	function access(toggle)
@@ -920,6 +920,7 @@ class GUIInput
 	{
 		g_CurX = g_PosX;
 		g_CurY = g_PosY;
+		setDrawPosition(
 	}
 	
 	function open()
