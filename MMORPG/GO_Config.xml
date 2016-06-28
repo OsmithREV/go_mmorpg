@@ -2,6 +2,12 @@
 <GO_Config>
 	<config public=0 serverName="Gothic 2 Online Server" serverPort=5000 maxSlots=32 adminPassword="your_password" />
 
+	<!-- Library -->
+		<!-- Client -->
+		
+		<!-- Server -->
+	
+	<!-- Main compopents -->
 	<script src="main.nut" type="server" />
 	<script src="mmo.nut" type="client" />
 
